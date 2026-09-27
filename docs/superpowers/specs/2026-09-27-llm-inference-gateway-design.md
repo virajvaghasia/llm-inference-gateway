@@ -101,9 +101,11 @@ Each component runs as its own process on localhost. Units communicate only over
   - `RoundRobin` — baseline.
   - `LeastLoaded` — minimum of (backend-reported waiting + running) combined with the gateway's
     own in-flight count for that backend, which is fresher than a polled metric.
-  - `PrefixAware` — hash of the conversation prefix (system prompt + all messages except the
-    last) placed on a consistent-hash ring with virtual nodes; if the chosen backend is down,
-    walk the ring to the next healthy node.
+  - `PrefixAware` — hash of the conversation key (system messages + the **first** user
+    message, which stays constant across turns; corrected 2026-09-27 during planning — keying
+    on "all messages except the last" changes every turn and breaks stickiness) placed on a
+    consistent-hash ring with virtual nodes; if the chosen backend is down, walk the ring to
+    the next healthy node.
 - **Streaming proxy:** forwards SSE chunks as they arrive, no buffering. If the client
   disconnects, the upstream request is cancelled.
 - **Health checker:** background task polling `/health` and `/metrics` on an interval.
